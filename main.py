@@ -15,8 +15,8 @@ with sync_playwright() as p:
                format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
                rotation="3 days")
 
-    brower = p.chromium.launch(headless=False)
-    page = brower.new_page()
+    browser = p.chromium.launch(headless=False)
+    page = browser.new_page()
 
     page.goto("https://journal.top-academy.ru/ru/auth/login/index")
     logger.info("Страница загружена")
@@ -35,11 +35,20 @@ with sync_playwright() as p:
     page.goto('https://journal.top-academy.ru/ru/main/homework/page/index')
     logger.info("Зашли на страницу с домашним заданием")
 
-    page2 = brower.new_page()
-    namestudent = input("Введите имя на github: ")
-    page2.goto('https://github.com/' + namestudent)
-    logger.info('Открыли github')
-    
-    input("Нажмите Enter для закрытия...")
-    brower.close()
+    page2 = browser.new_page()
 
+    namestudent = input("Введите имя на github: ")
+    github_url = f'https://github.com/{namestudent}'
+
+    page2.goto(github_url)
+    logger.info(f"Открыли GitHub профиль: {github_url}")
+
+    # Ждем полной загрузки
+    page2.wait_for_load_state('networkidle')
+
+    # Переключаемся обратно на page (страницу с домашкой)
+    page.bring_to_front()
+    page.wait_for_timeout(1000)
+
+    input("Нажмите Enter для закрытия...")
+    browser.close()
